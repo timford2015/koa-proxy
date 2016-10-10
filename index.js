@@ -27,7 +27,7 @@ module.exports = function(options) {
         return yield* next;
       }
     }
-
+    var parsedBody = undefined;
     var body = this.request.body;
     if (body === undefined || body === null){
       if (this.request.length) {
