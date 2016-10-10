@@ -3,6 +3,7 @@
 var join = require('url').resolve;
 var iconv = require('iconv-lite');
 var coRequest = require('co-request');
+var getRawBody = require('raw-body');
 
 module.exports = function(options) {
   options || (options = {});
@@ -104,7 +105,18 @@ function ignoreQuery(url) {
 function getParsedBody(ctx){
   var body = ctx.request.body;
   if (body === undefined || body === null){
-    return undefined;
+
+    if (ctx.request.length) {
+       body = yield getRawBody(ctx.req, {
+         length: ctx.request.length,
+         limit: '1mb',
+         encoding: ctx.request.charset
+       });
+       return body;
+     } else {
+       return undefined;
+     }   
+
   }
   var contentType = ctx.request.header['content-type'];
   if (!Buffer.isBuffer(body) && typeof body !== 'string'){
