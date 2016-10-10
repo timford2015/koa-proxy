@@ -28,7 +28,30 @@ module.exports = function(options) {
       }
     }
 
-    var parsedBody = getParsedBody(this);
+    var body = ctx.request.body;
+    if (body === undefined || body === null){
+      if (ctx.request.length) {
+         body = yield getRawBody(ctx.req, {
+           length: ctx.request.length,
+           limit: '1mb',
+           encoding: ctx.request.charset
+         });
+         parsedBody = body;
+       } else {
+         parsedBody = undefined;
+       }   
+    } else {
+      var contentType = ctx.request.header['content-type'];
+      if (!Buffer.isBuffer(body) && typeof body !== 'string'){
+        if (contentType && contentType.indexOf('json') !== -1){
+          body = JSON.stringify(body);
+        } else {
+          body = body + '';
+        }
+      }
+      parsedBody = body;
+    }
+
 
     var opt = {
       url: url + (this.querystring ? '?' + this.querystring : ''),
@@ -102,32 +125,6 @@ function ignoreQuery(url) {
   return url ? url.split('?')[0] : null;
 }
 
-function getParsedBody(ctx){
-  var body = ctx.request.body;
-  if (body === undefined || body === null){
-
-    if (ctx.request.length) {
-       body = yield getRawBody(ctx.req, {
-         length: ctx.request.length,
-         limit: '1mb',
-         encoding: ctx.request.charset
-       });
-       return body;
-     } else {
-       return undefined;
-     }   
-
-  }
-  var contentType = ctx.request.header['content-type'];
-  if (!Buffer.isBuffer(body) && typeof body !== 'string'){
-    if (contentType && contentType.indexOf('json') !== -1){
-      body = JSON.stringify(body);
-    } else {
-      body = body + '';
-    }
-  }
-  return body;
-}
 
 function pipeRequest(readable, requestThunk){
   return function(cb){
