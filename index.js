@@ -28,20 +28,20 @@ module.exports = function(options) {
       }
     }
 
-    var body = ctx.request.body;
+    var body = this.request.body;
     if (body === undefined || body === null){
-      if (ctx.request.length) {
-         body = yield getRawBody(ctx.req, {
-           length: ctx.request.length,
+      if (this.request.length) {
+         body = yield getRawBody(this.req, {
+           length: this.request.length,
            limit: '1mb',
-           encoding: ctx.request.charset
+           encoding: this.request.charset
          });
          parsedBody = body;
        } else {
          parsedBody = undefined;
        }   
     } else {
-      var contentType = ctx.request.header['content-type'];
+      var contentType = this.request.header['content-type'];
       if (!Buffer.isBuffer(body) && typeof body !== 'string'){
         if (contentType && contentType.indexOf('json') !== -1){
           body = JSON.stringify(body);
